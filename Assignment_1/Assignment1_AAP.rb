@@ -1,9 +1,10 @@
 ### ASSIGNMENT 1: CREATING OBJECTS
 ## Author: Andrea Álvarez Pérez
 
-## Usage: $ ruby Assignment1_AAP.rb
+## Usage: $ ruby Assignment1_AAP.rb gene_information.tsv seed_stock_data.tsv cross_data.tsv new_stock_file.tsv
 ## Once the code is executed, a file "new_stock_file.tsv" is created or rewrited (if it alredy exists).
 
+# DEFINED CLASSES
 class SeedStock # superclass
   
   attr_accessor :seed_stockID
@@ -22,20 +23,17 @@ class SeedStock # superclass
     @grams_rem = params.fetch(:grams_rem, "0")
     
   end
-  
-  # write the header in output file. If the file exists, rewrite it
-  File.write("new_stock_file.tsv", ["Seed_Stock", "Mutant_Gene_ID", "Last_Planted", "Storage", "Grams_Remaining"].join("\t"), mode: "w") 
-   
-  def seed_grams_remain
+     
+  def seed_grams_remain (newfile)
     newvalue = grams_rem.to_i - 7 # convert string into integer and plant 7 seeds
     if newvalue <= 0 then
       # set value into 0 to avoid having negative numbers
       newvalue = 0
-      File.open("new_stock_file.tsv", "a") { |f| f.write("\r\n#{seed_stockID}\t#{geneID}\t#{last_planted}\t#{storage}\t#{newvalue}\t") }
+      File.open(newfile, "a") { |f| f.write("\r\n#{seed_stockID}\t#{geneID}\t#{last_planted}\t#{storage}\t#{newvalue}\t") }
       return "WARNING: we have run out of Seed Stock #{seed_stockID}"
     else
       # write results in new_stock_file
-      File.open("new_stock_file.tsv", "a") { |f| f.write("\r\n#{seed_stockID}\t#{geneID}\t#{last_planted}\t#{storage}\t#{newvalue}\t") }
+      File.open(newfile, "a") { |f| f.write("\r\n#{seed_stockID}\t#{geneID}\t#{last_planted}\t#{storage}\t#{newvalue}\t") }
       return
     end
   end
@@ -121,20 +119,57 @@ class Gene < HybridCross
     super gene_name
     
   end
+  
+  def check_format
+    # save the regular expression of the gene format in a variable
+    format = Regexp.new(/A[Tt]\d[Gg]\d\d\d\d\d/)
+    if geneID.match(format) == nil # if no match, error mensage and stop the code
+      puts "GeneID #{geneID} is not in the correct format, please check the error"
+      # with exit 1 to signal an error condition
+      exit 1
+    end
+  end
  
 end
 
 # =======================================================================================================
 
-# Open files and fill class data
+## 1. Capture command line arguments
+input_array = ARGV # creates an array with the arguments
+
+## ERROR CONTROLS
+# Incorrect number of arguments
+if input_array.length != 4
+    puts
+    puts "ERROR: Incorrect number of arguments"
+    puts "- Number of arguments given: #{input_array.length}"
+    puts "- Expected number of arguments: 4"
+    puts
+    puts "USAGE: ruby Assignment1_AAP.rb gene_information.tsv seed_stock_data.tsv cross_data.tsv new_stock_file.tsv"
+    exit 1
+end 
+# Incorrect argument order
+if input_array != ["gene_information.tsv", "seed_stock_data.tsv", "cross_data.tsv", "new_stock_file.tsv"]
+    puts
+    puts "ERROR: Incorrect argument order"
+    puts "- Current argument order: #{input_array}"
+    puts
+    puts "USAGE: ruby Assignment1_AAP.rb gene_information.tsv seed_stock_data.tsv cross_data.tsv new_stock_file.tsv"
+    exit 1
+end
 
 require "csv"
 
 # read CSV files and store the information in 3 variables
-tsv_seed = CSV.read("seed_stock_data.tsv", col_sep: "\t")[1 .. -1] # delete the header
-tsv_gene = CSV.read("gene_information.tsv", col_sep: "\t")[1 .. -1] # delete the header
-tsv_cross = CSV.read("cross_data.tsv", col_sep: "\t")[1 .. -1] # delete the header
+tsv_gene = CSV.read(input_array[0], col_sep: "\t")[1 .. -1] # delete the header
+tsv_seed = CSV.read(input_array[1], col_sep: "\t")[1 .. -1] # delete the header
+tsv_cross = CSV.read(input_array[2], col_sep: "\t")[1 .. -1] # delete the header
 
+# write the header in output file. If the file exists, rewrite it
+newfile = input_array[3]
+File.write(newfile, ["Seed_Stock", "Mutant_Gene_ID", "Last_Planted", "Storage", "Grams_Remaining"].join("\t"), mode: "w") 
+
+# Open files and fill class data
 for i in [0,1,2,3,4]
   p2 = SeedStock.new(
     :seed_stockID => tsv_seed[i][0],      
@@ -143,7 +178,7 @@ for i in [0,1,2,3,4]
     :storage => tsv_seed[i][3],
     :grams_rem => tsv_seed[i][4]
     )
-  puts p2.seed_grams_remain # execute first exercise function
+  puts p2.seed_grams_remain(newfile) # execute first exercise function
 end
   
 for i in [0,1,2,3,4]
@@ -169,5 +204,7 @@ for i in [0,1,2,3,4]
     i -= 1
   end
   # execute first exercise function: the arguments are the gene names associated with parent1 and parent2
-  puts p3.calculate(p4.gene_name, gene2) 
+  puts p3.calculate(p4.gene_name, gene2)
+  puts p4.check_format
 end
+
