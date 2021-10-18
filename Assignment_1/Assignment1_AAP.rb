@@ -170,7 +170,8 @@ newfile = input_array[3]
 File.write(newfile, ["Seed_Stock", "Mutant_Gene_ID", "Last_Planted", "Storage", "Grams_Remaining"].join("\t"), mode: "w") 
 
 # Open files and fill class data
-for i in [0,1,2,3,4]
+i = 0
+while i <= 4
   p2 = SeedStock.new(
     :seed_stockID => tsv_seed[i][0],      
     :geneID => tsv_seed[i][1],                   
@@ -179,9 +180,11 @@ for i in [0,1,2,3,4]
     :grams_rem => tsv_seed[i][4]
     )
   puts p2.seed_grams_remain(newfile) # execute first exercise function
+  i += 1
 end
   
-for i in [0,1,2,3,4]
+i = 0
+while i <= 4
   p3 = HybridCross.new(    
     :parent1 => tsv_cross[i][0],                   
     :parent2 => tsv_cross[i][1], 
@@ -206,5 +209,6 @@ for i in [0,1,2,3,4]
   # execute first exercise function: the arguments are the gene names associated with parent1 and parent2
   puts p3.calculate(p4.gene_name, gene2)
   puts p4.check_format
+  i += 1
 end
 
