@@ -9,4 +9,4 @@ USAGE: $ruby Assignment1_AAP.rb gene_information.tsv seed_stock_data.tsv cross_d
 
 ### Assignment 2: Intensive integration using Web APIs
 
-USAGE: $ruby Assignment2_main.rb <input file name> <output file name>
+USAGE: $ruby Assignment2_main.rb {input file name} {output file name}
