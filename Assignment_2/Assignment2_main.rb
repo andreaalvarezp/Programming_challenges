@@ -104,10 +104,6 @@ end
 
 networks = Network.all_net
 
-puts "$INT: #{$INT}"
-
-puts "Protein objects: #{Interaction.return_method}"
-
 # I want to store in an array the genes which are part of a network
 
 $MEM_GENES = Array.new
