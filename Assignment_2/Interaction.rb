@@ -14,7 +14,7 @@ class Interaction
     attr_accessor :network        # Network ID
     
     @@prot_intact = Hash.new      # Not all the protein objects are going to have an IntAct ID, we store here the ones with it
-    @@interactions = false          # Counts the interactions
+    @@interactions = false        # Counts the interactions
     
     def initialize(params = {})
       
@@ -41,14 +41,6 @@ class Interaction
         # in order to assign later a network ID to configure
         
         return @@prot_intact
-        
-    end
-    
-    def self.return_interactions
-        
-        # I need this function to return the interactions array to put it in the network class
-        
-        return @@interactions
         
     end
     
@@ -189,7 +181,7 @@ class Interaction
                 
                 if hybrid == "two hybrid)" || hybrid == "two hybrid array)"    # Measure protein-protein interaction
                     next
-                elsif score < 0                                                      # Quality score > 0
+                elsif score < 0                                                     # Quality score > 0
                     next
                 elsif uniprot1 == uniprot2
                     next
@@ -211,7 +203,7 @@ class Interaction
             # List in global variables all the interactions and proteins with IntAct ID
             #puts "Done!"
             $INT = @@interactions
-            #puts "@@interactions: #{@@interactions}"
+           
             return interactions        # proteins which belong to the same network
         else
             puts "Web call failed in function get_interactions - see STDERR for details..."
