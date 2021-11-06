@@ -2,6 +2,7 @@
 # Assignment2: Interaction_protein.rb
 # Author: Andrea Álvarez Pérez
 
+# Modules
 
 require 'json'
 require 'net/http'
@@ -14,7 +15,7 @@ class Interaction
     attr_accessor :network        # Network ID
     
     @@prot_intact = Hash.new      # Not all the protein objects are going to have an IntAct ID, we store here the ones with it
-    @@interactions = false        # Counts the interactions
+    @@interactions = false        # Accumulates the interactions by pairs of IntAct Codes
     
     def initialize(params = {})
       
@@ -35,39 +36,38 @@ class Interaction
       
     end
     
+    # Function to return to main script all protein objects created to posterior network building
+    
     def self.return_method
-        
-        # Only to use the methods in the main script. The idea is to save in thi method all the protein object created that have an IntAct ID
-        # in order to assign later a network ID to configure
         
         return @@prot_intact
         
     end
     
+    # Function to create protein object and store prot_id and intact_id (if exists) for each of them
+    
     def self.get_prot(prot_id, depth, gene_id = nil, intact_id = nil)
       
-      # I need a function to create a protein object in order to collect the information for the network and annotation
-      # If it i the first search, we are going to have the gene_id, but if it's the second search, we are going to have de intact_id
-      
-      if not intact_id                          # If the gene_id i given, I search for Intact_id
+      if not intact_id                                  # If the gene_id i given, I search for Intact_id
         intact_id = self.get_intact_id(gene_id)
       end
       
-      if intact_id && (depth.to_f < $max_depth)                     # If the IntAct is given, I search for interactions
-        new_interaction(intact_id, depth)        # Llamar a get_prot desde otro lado que no sea load_file (siempre va a ser un gene_id)                 
+      if intact_id && (depth.to_f < $max_depth)         # If the IntAct is given, I search for interactions
+        new_interaction(intact_id, depth)                               
       end
 
-      #puts "@@interactions: #{@@interactions}"
       Interaction.new(
             :prot_id => prot_id,
             :intact_id => intact_id,
             :network => nil 
             )
-      #puts "Protein object created: #{prot_id}, #{intact_id}"   
       
-      depth += 1 # Go ahead with the network depth
+      depth += 1                                        # Go ahead with the network depth
  
     end
+    
+    # Function to look if a protein object alredy exist in order to avoid repetitions in networks.
+    # We control if the protein has an intact_id associated
     
     def self.prot_exist(intact_id)
 
@@ -81,6 +81,8 @@ class Interaction
           
     end
     
+    # Function to get intact_id from the AGI locus code. I chose to use togows.
+    
     def self.get_intact_id(gene_id)
         
         
@@ -92,16 +94,17 @@ class Interaction
           data = JSON.parse(response)
       
           if data[0]['IntAct']
-            #puts "IntAct ID: #{data[0]['IntAct'][0][0]}" # If the protein is present
-            return data[0]['IntAct'][0][0]
+            return data[0]['IntAct'][0][0]  # IntAct ID result
           else
-            return nil                     # Empty result
+            return nil                      # Empty result (not stored in @@prot_intact)
           end
         else
             puts "Web call failed in function get_intact_id - see STDERR for details..."
         end
       
     end
+    
+    # Function to convert intact_id to prot_id in order to fill protein objects attributes
     
     def self.convert_intact_protid(intact_id)
         
@@ -120,15 +123,15 @@ class Interaction
   
     end
     
+    # Function called to create new protein objects according to interactions found.
+    
     def self.new_interaction(intact_id, depth)
         
         # I have to create the proteins with the elements of the network I got in get_interactions
-        #puts "@@interactions: #{@@interactions}"
         interactions = get_interactions(intact_id)
         depth += 1
         
         if interactions                 # I get the rest of the interactions
-            #puts "Adding protein-protein interactions..."
             intact = intact_id          # I don't want my IntAct ID to change when I create a new protein object
             
             interactions.each do |prot1, prot2|
@@ -148,9 +151,10 @@ class Interaction
             end
 
         end
-        #puts "Done!"
 
     end
+    
+    # Function to get the interactions of a certain IntAct code. I chose to use EBI's REST API.
   
     def self.get_interactions(intact_id)
         
@@ -158,13 +162,13 @@ class Interaction
         
         puts "Fetching for interactions for IntAct ID #{intact_id}..."
         response = fetch ("http://www.ebi.ac.uk/Tools/webservices/psicquic/intact/webservices/current/search/interactor/#{intact_id}?format=tab25")
-        #puts "@@interactions: #{@@interactions}"
+        #response = fetch ("http://www.ebi.ac.uk/Tools/webservices/psicquic/intact/webservices/current/search/interactor/#{gene_id}?format=tab25")
         
         if response
 
             data = response.to_s.split("\n")
             
-            # create an array to save the protein interactions by couples
+            # create an array to save the protein interactions by pairs
             interactions = Array.new
           
             data.each do |line|
@@ -173,25 +177,21 @@ class Interaction
                
                 uniprot1 = uni[0].split(":")[1]                     # First protein 
                 uniprot2 = uni[1].split(":")[1]                     # Second protein
-                # Ways of measuring protein-protein interaction: the least effective is two hybrid, so in order to reduce the hits, we filter through this
-                hybrid = uni[6].split("(")[1]
                 score = uni[14].sub(/intact-miscore:/, "").to_f     # Quality score
     
                 ## FILTERS
                 
-                if hybrid == "two hybrid)" || hybrid == "two hybrid array)"    # Measure protein-protein interaction
-                    next
-                elsif score < 0                                                     # Quality score > 0
+                if score < 0.3                                                  # Quality score > 0
                     next
                 elsif uniprot1 == uniprot2
                     next
-                elsif uni[9] =~ /taxid:3702/ && uni[10] =~ /taxid:3702/              # Species: Arabidopsis
+                elsif uni[9] =~ /taxid:3702/ && uni[10] =~ /taxid:3702/         # Species: Arabidopsis
                     if uniprot1 < uniprot2                                      # Alphabetical order
                         if not @@interactions.include?([uniprot1, uniprot2])    # Avoid repetitions
                             @@interactions << [uniprot1, uniprot2]
                             interactions << [uniprot1, uniprot2]
                         end
-                    else                                   # No alphabetical order
+                    else                                                        # No alphabetical order
                         if not @@interactions.include?([uniprot2, uniprot1])    # Avoid repetitions
                             @@interactions << [uniprot2, uniprot1]
                             interactions << [uniprot2, uniprot1]
@@ -200,8 +200,7 @@ class Interaction
                 end
             end
             
-            # List in global variables all the interactions and proteins with IntAct ID
-            #puts "Done!"
+            # List in global variables all the interactions and proteins with IntAct ID to use them in main script
             $INT = @@interactions
            
             return interactions        # proteins which belong to the same network

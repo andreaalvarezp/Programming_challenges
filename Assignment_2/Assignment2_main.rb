@@ -14,7 +14,7 @@ require './Network.rb'
 require 'json'
 input = ARGV
 
-## Function to fetch from URI
+## Function to fetch using rest-client
 
 def fetch(url)
   response = RestClient::Request.execute({
@@ -69,8 +69,6 @@ end
 ## Variables
 $max_depth = 2
 
-# Call Gene.rb with input file
-
 ## Error control
 
 if input.length != 2
@@ -81,8 +79,12 @@ if input.length != 2
   exit 1
 end
 
+# ARGV arguments
+
 file = input[0]
 out = input[1]
+
+# Write output file header
 File.write(out, "\r\nASSIGNMENT 2\r\nAuthor: Andrea Álvarez Pérez\r\n------------------------------------------------\r\n", mode: "w") 
 
 # 1. Load all the genes AGI Locus Codes in the list and create Interaction Objects with them, including IntAct code
@@ -95,16 +97,18 @@ puts "Building networks and annotating genes..."
 
 Interaction.return_method.each do |id, feature|
   
-  if not feature.network                  # If the object is network = nil
-    new_network = Network.new_net         # Create new network object with 2 nodes (the minimun possible)
+  if not feature.network                          # If the object is network = nil
+    new_network = Network.new_net                 # Create new network object with 2 nodes (the minimun possible)
     Network.build_network(feature, new_network)
   end
   
 end
 
+# Call al network objects
+
 networks = Network.all_net
 
-# I want to store in an array the genes which are part of a network
+# I want to store in an array the genes which are part of some network
 
 $MEM_GENES = Array.new
 puts "Writing into output file: output.txt..."
@@ -114,6 +118,8 @@ sum = 0
 $MEM_GENES.each do |number|
   sum += number
 end
+
+# Total number of genes in the input list
 
 $TOT_GENES = Gene.genes
 
