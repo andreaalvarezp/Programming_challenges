@@ -162,7 +162,6 @@ class Interaction
         
         puts "Fetching for interactions for IntAct ID #{intact_id}..."
         response = fetch ("http://www.ebi.ac.uk/Tools/webservices/psicquic/intact/webservices/current/search/interactor/#{intact_id}?format=tab25")
-        #response = fetch ("http://www.ebi.ac.uk/Tools/webservices/psicquic/intact/webservices/current/search/interactor/#{gene_id}?format=tab25")
         
         if response
 
@@ -181,7 +180,7 @@ class Interaction
     
                 ## FILTERS
                 
-                if score < 0.3                                                  # Quality score > 0
+                if score < $misscore.to_f                                                  # Quality score > 0.45 (middle-quality) or 0.3 (middle-low quality)
                     next
                 elsif uniprot1 == uniprot2
                     next

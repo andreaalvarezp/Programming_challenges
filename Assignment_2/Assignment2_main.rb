@@ -71,18 +71,42 @@ $max_depth = 2
 
 ## Error control
 
-if input.length != 2
-  puts "\r\n-----------------------------------------------------------------------------------"
+if input.length < 2 && input.length > 3
+  puts "\r\n---------------------------------------------------------------------------------------------------------------------"
   puts "\tERROR: Incorrect number of arguments"
-  puts "\tUSAGE: $ruby Assignment2_main.rb <input file name> <output file name>"
-  puts "-----------------------------------------------------------------------------------";puts
+  puts "\tUSAGE: $ruby Assignment2_main.rb <input file name> <output file name> <intact-miscore threshold>"
+  puts "---------------------------------------------------------------------------------------------------------------------";puts
   exit 1
 end
 
 # ARGV arguments
 
 file = input[0]
-out = input[1]
+outfile = input[1]
+$misscore = input[2]
+
+# if intact-miscore is not given, set a default one
+if $misscore == nil
+  $misscore = 0.45
+  puts "\r\nSet default intact-miscore value: 0.45"
+end
+
+if $misscore.to_f > 1 || $misscore.to_f < 0
+  puts "\r\n---------------------------------------------------------------------------------------------------------------------"
+  puts "\tERROR: intact-miscore threshold must be a number between 0 and 1"
+  puts "\tUSAGE: $ruby Assignment2_main.rb <input file name> <output file name> <intact-miscore threshold>"
+  puts "---------------------------------------------------------------------------------------------------------------------";puts
+  exit 1
+end
+
+new_miss = $misscore.to_s.sub(".", "")
+out = outfile.split(".")[0]
+out = out+"_"+new_miss+".txt"
+
+puts "\r\n--------------------------------------------------------------------------------------------------------------------"
+puts "\r\nNOTICE: this program is subjected to errors in the web pages of the databases used (TOGOWS REST API, EBI REST API)."
+puts "These errors are foreign to the program and unavoidable, since they depend on the state of the web pages."
+puts "\r\n--------------------------------------------------------------------------------------------------------------------"
 
 # Write output file header
 File.write(out, "\r\nASSIGNMENT 2\r\nAuthor: Andrea Álvarez Pérez\r\n------------------------------------------------\r\n", mode: "w") 
@@ -93,6 +117,7 @@ puts "Done!";puts
 
 # 2. Once we have the list of all protein objects with IntAct ID associated in a ruby method, we assign a network ID
 
+print Interaction.return_method
 puts "Building networks and annotating genes..."
 
 Interaction.return_method.each do |id, feature|
@@ -127,6 +152,8 @@ puts "Done!"
 
 puts "\r\n-----------------------------------------------------------------------------"
 puts "\tOUTPUT SUMMARY:";puts
+puts "--- Results written in file: #{out}"
+puts "--- IntAct miscore threshold: #{$misscore}"
 puts "--- Total number of genes loaded: #{$TOT_GENES.length}"
 puts "--- Total number of networks: #{networks.length}"
 puts "--- Number of genes of the initial list which are part of some network: #{sum}"

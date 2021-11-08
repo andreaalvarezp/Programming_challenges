@@ -97,34 +97,55 @@ class Gene
     # I have to call the gene_id that is entering the class
     
     response_GO = fetch ("http://togows.org/entry/ebi-uniprot/#{self.gene_id}/dr.json")
-    response_KEGG = fetch ("http://togows.org/entry/kegg-genes/ath:#{self.gene_id}/pathways.json")
-    
-    if response_GO || response_KEGG
 
-      data_GO = JSON.parse(response_GO.body)
-      data_KEGG = JSON.parse(response_KEGG.body)
+    if response_GO 
+      
+      #puts "Annotate GO data running..."
+
+      data_GO = JSON.parse(response_GO)
       
       argument = "P:" # Biological process GO Terms only
   
       # GO data information is stored in an array
       data_GO[0]["GO"].each do |g|
         if (g[1].match("#{argument}"))    # Only biological process GO
+          if not self.go_id.include?(g[0])
           # Store the information in the corresponding arrays
-          self.go_id << g[0]
-          self.go_term << g[1]
+            self.go_id << g[0]
+            self.go_term << g[1]
+          else
+            next
+          end
         else
           next
         end
       end
+      
+    else
+      puts "Web call failed in function annotate_data GO - see STDERR for details..."
+    end
+      
+    response_KEGG = fetch ("http://togows.org/entry/kegg-genes/ath:#{self.gene_id}/pathways.json")
+  
+    if response_KEGG
+            
+      #puts "Annotate KEGG data running..."
+      
+      data_KEGG = JSON.parse(response_KEGG)
         
       # KEGG data information is stored in a dictionary  
       data_KEGG[0].each do |kegg_id, kegg_path|
         # Store the information in the corresponding arrays
-        self.kegg_id << kegg_id
-        self.kegg_path << kegg_path
+        if not self.kegg_id.include?(kegg_id)
+          self.kegg_id << kegg_id
+          self.kegg_path << kegg_path
+        else
+          next
+        end
       end
+      
     else
-      puts "Web call failed in function annotate_data - see STDERR for details..."
+      puts "Web call failed in function annotate_data KEGG - see STDERR for details..."
     end
   end
     

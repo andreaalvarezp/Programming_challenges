@@ -47,6 +47,7 @@ class Network
                 :num_nodes => 2,            # minimun number of nodes 
                 :members => Hash.new        # this hash accumulates the information of all genes which are members of this network
                 )
+    #puts "New network created: #{network_id}"
 
     return network_id
       
@@ -66,6 +67,7 @@ class Network
     
     @@network_obj[network_id].members[gene_obj.gene_id] = gene_obj
     
+    #puts "Annotating gene #{gene_obj.gene_id}..."
     gene_obj.annotate_data
         
   end
@@ -73,6 +75,8 @@ class Network
   # Recursive function which takes a network_id an iterates through all interactions array
   
   def self.build_network(feature, network_id)
+    
+    #puts "Building network..."
 
     feature.network = network_id                   # Assign network_id to the empty feature network_id of the interaction object
     
@@ -90,6 +94,8 @@ class Network
         self.build_network(Interaction.return_method[int[0]], network_id)                     # Call the function itself (recursive)
       end
    end
+    
+    #puts "Adding genes to network #{network_id}..."
     
     # Once we have added all the proteins, now add the genes.
     # We search for the protein ID to return the identificator of the gene
