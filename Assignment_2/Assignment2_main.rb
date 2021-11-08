@@ -117,7 +117,6 @@ puts "Done!";puts
 
 # 2. Once we have the list of all protein objects with IntAct ID associated in a ruby method, we assign a network ID
 
-print Interaction.return_method
 puts "Building networks and annotating genes..."
 
 Interaction.return_method.each do |id, feature|
