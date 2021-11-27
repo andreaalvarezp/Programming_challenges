@@ -189,7 +189,7 @@ def add_features(gene_id, pattern_hits, nucl_seq, pattern, outfile1)
   pattern_hits.each do |pos, prop|    
     # Feature type: based on existing SOFA sequence ontology, I chose 'exon_region' with SOFA ID SO:0000852
     # ref: http://www.sequenceontology.org/so_wiki/index.php/Category:SO:0000852_%21_exon_region
-    new_feat = Bio::Feature.new("SO:0000852", "#{pos[0]}..#{pos[1]}")
+    new_feat = Bio::Feature.new("exon_region", "#{pos[0]}..#{pos[1]}")
     # Check with feat.qualifiers
     new_feat.append(Bio::Feature::Qualifier.new('source', "#{prop[0]}"))
     new_feat.append(Bio::Feature::Qualifier.new('exon_id', "#{prop[1]}"))
@@ -308,17 +308,23 @@ puts "--------------------------------------------------------------------------
 puts "Number of genes loaded: #{genes.length}"
 puts "Genes on the list '#{inputfile}' which do NOT have exons with the #{pattern.upcase} repeat: #{no_pattern_genes.length}"
 
-no_pattern_genes.each do |gene_id|
-  if gene_id.empty?
-    next
-  else
-    puts "- Gene ID: #{gene_id}"
+outfile3 = "no_pattern_genes.txt"
+File.open(outfile3, "w") do |f|
+  f.puts "Genes on the list '#{inputfile}' which do NOT have exons with the #{pattern.upcase} repeat: #{no_pattern_genes.length}"
+  no_pattern_genes.each do |gene_id|
+    if gene_id.empty?
+      next
+    else
+      puts "- Gene ID: #{gene_id}"
+      f.puts "#{gene_id}"
+    end
   end
 end
 puts "-----------------------------------------------------------------------------------"
 puts "Results loaded in files:"
 puts "- #{outfile1}"
 puts "- #{outfile2}"
+puts "- #{outfile3}"
 puts "-----------------------------------------------------------------------------------";puts
 
   
