@@ -12,3 +12,7 @@ USAGE: $ruby Assignment1_AAP.rb gene_information.tsv seed_stock_data.tsv cross_d
 USAGE: $ruby Assignment2_main.rb {input file name} {output file name} {intact-miscore threshold}(optional)
 
 Default value if {intact-miscore} argument missing: 0.45
+
+### Assignment 3: GFF feature files and visualization
+
+USAGE: $bioruby Assignment3.rb {input file name}
